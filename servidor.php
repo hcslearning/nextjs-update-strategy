@@ -2,6 +2,10 @@
 header("Content-Type: application/json; charset=utf-8");
 ?>{
     "saludo": "Hola mundo!!!###",
-    "despedida": "Chao!!!!!!"
+    "despedida": "Chao!!!!!!",
+    "paginas": [
+        "uno",         
+        "tres" 
+    ]
 }
 

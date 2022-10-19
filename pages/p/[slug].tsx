@@ -1,8 +1,8 @@
-import type { GetStaticProps, NextPage } from 'next'
+import type { GetStaticPaths, GetStaticProps, NextPage } from 'next'
 import Link from 'next/link'
 import { createElement, useEffect, useState } from 'react'
-import { Config } from '../lib/config'
-import { HomeProps, Tipo } from '../lib/tipos'
+import { Config } from '../../lib/config'
+import { HomeProps, RutaType, Tipo } from '../../lib/tipos'
 
 const Home: NextPage<HomeProps> = (props) => {
   const [tipo, setTipo] = useState(props.tipo) 
@@ -21,23 +21,13 @@ const Home: NextPage<HomeProps> = (props) => {
     update() 
   }, []) 
 
-  const revalidarPagina = async (pagina:string) => {
-    console.log("Revalidando página: "+pagina)
-    const ruta = "/api/revalidar?path="+pagina
-    await fetch(ruta)
-  }
-
   return (
     <div>
       <p>{tipo.saludo}</p>
-      <Link href={"/index2"}>
-        <a>Index #2</a>
+      <Link href={"/"}>
+        <a>volver al inicio</a>
       </Link>
 
-      <br /><br /> 
-      <button onClick={() => revalidarPagina('/datos')}>Refrescar Pag. Datos</button>
-      <br />
-      <button onClick={() => revalidarPagina('/p/dos')}>Eliminar Pag. 2</button>
       <ul>
         {props.tipo.paginas?.map(s => 
         <li key={s}>
@@ -47,18 +37,48 @@ const Home: NextPage<HomeProps> = (props) => {
         </li>
         )}        
       </ul>
+
     </div>
   )
+}
+
+export const getStaticPaths: GetStaticPaths = async () => {
+    const url = "http://127.0.0.1:8000/servidor.php"
+    const res = await fetch(url);    
+    const obj = await res.json() as Tipo   
+
+    let paths:RutaType[] = obj?.paginas?.map(r => {
+        return {
+            params: {
+                slug: r
+            }
+        }
+    }) ?? [] 
+
+    return {
+        paths, // paths: [{params: {id: '1'}}, {params: {id: '2'}}] -> example: /post/1 and /post/2
+        fallback: 'blocking' // false, true, blocking
+    }
 }
 
 export const getStaticProps: GetStaticProps = async (context) => {
   const url = "http://127.0.0.1:8000/servidor.php"
   const res = await fetch(url);    
-  const saludoObj = await res.json()   
+  const obj = await res.json() as Tipo
+
+  const slug = context.params?.slug?.toString()??'-'
+  console.log("Slug es: "+slug)
+  const slugExiste = (s:string) => obj.paginas?.includes(slug)??false
+
+  if( !slugExiste(slug) ) {
+    return {
+        notFound: true
+    }
+  }
 
   return {
     props: {
-      tipo: saludoObj 
+      tipo: obj
     },
     revalidate: Config.revalidateTimeInSeconds() 
   }

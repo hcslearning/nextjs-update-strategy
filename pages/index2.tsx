@@ -6,15 +6,17 @@ import { HomeProps, Tipo } from '../lib/tipos'
 
 const Home2: NextPage<HomeProps> = (props) => {
   const [despedida, setDespedida] = useState<string>(props.tipo.despedida) 
+
   useEffect(() => {
     
   }, [])
+
   return (
     <div>
       <p>{despedida}</p>
       <Link href={"/"}>
         <a>Index</a>
-      </Link>
+      </Link>      
     </div>
   )
 }
